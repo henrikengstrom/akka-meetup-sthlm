@@ -26,20 +26,27 @@ Select your preferred flavor of compression (zip or tar.gz), download and extrac
 ## SBT
 
 To compile your project code with SBT:
+
 > cd akka-meetup-stockholm
+
 > sbt
+
 > compile
 
 ## Eclipse the project
 
 Open a terminal and type:
+
 > sbt eclipse
+
 Open Eclipse and point it to the project catalogue.
 
 ## IntelliJ the project
 
 Open a terminal window and type:
+
 > sbt gen-idea
+
 Open IntelliJ and point it to the project catalogue.
 
 ## The Kata ("osu sensei")
