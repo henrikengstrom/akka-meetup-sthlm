@@ -1,6 +1,18 @@
 *.class
 *.log
 
+# OSX
+.DS_Store
+
+# IDEA
+.idea
+.idea_modules
+
+# ECLIPSE
+.classpath
+.project
+.settings
+
 # sbt specific
 dist/*
 target/
