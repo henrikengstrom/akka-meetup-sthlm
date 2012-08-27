@@ -27,11 +27,7 @@ Select your preferred flavor of compression (zip or tar.gz), download and extrac
 
 To compile your project code with SBT:
 
-> cd akka-meetup-stockholm
-
-> sbt
-
-> compile
+> sbt compile
 
 ## Eclipse the project
 
