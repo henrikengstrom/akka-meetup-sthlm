@@ -67,7 +67,7 @@ We will provide some alternative implementations to show how to solve the differ
 
 ## Authors
 
-* Henrik Engström : [@henke](http://twitter.com/h3nk3)
+* Henrik Engström : [@h3nk3](http://twitter.com/h3nk3)
 * Björn Antonsson : [@bantonsson](http://twitter.com/bantonsson)
 
 ## Props
