@@ -14,11 +14,13 @@ This repository contains an Akka kata to be used during the Stockholm Scala Meet
 
 So you decided to install Git (or already had it installed). Smart move!
 Open a terminal and type:
+
 __> git clone git@github.com:henrikengstrom/akka-meetup-sthlm.git__
 
 ## Getting Started (manually - Git unavailable)
 
 Open a browser and point it to:
+
 __https://github.com/henrikengstrom/akka-meetup-sthlm/downloads__
 
 Select your preferred flavor of compression (zip or tar.gz), download and extract onto your machine.
