@@ -58,8 +58,8 @@ To showcase the elements above we have selected to implement a simple betting ap
 The implemented application should simulate a transacted system, i.e. it should handle a crash of a JVM.
 We will discuss pros and cons of alternative implementations during the meetup.
 
-The application you create will run in two different JVMs (and actor systems). One "node", called _ betting service_, receives bet messages from a client,
-creates a transaction number and sends this message to the other "node" __betting processor_. The betting service keeps track of messages sent and should also
+The application you create will run in two different JVMs (and actor systems). One "node", called _betting service_, receives bet messages from a client,
+creates a transaction number and sends this message to the other "node" _betting processor_. The betting service keeps track of messages sent and should also
 handle confirmation messages from the betting processor. It also handles re-sending of messages that have not been confirmed. 
 
 The task of the betting processor is to spawn workers that do the dangerous job (in this case interacting with an unstable service), 
