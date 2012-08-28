@@ -50,7 +50,7 @@ object AkkaDemoBuild extends Build {
 
 object Dependencies {
   import Dependency._
-  val akkademo = Seq(akkaActor, scalaTest, jUnit)
+  val akkademo = Seq(akkaActor, akkaKernel, scalaTest, jUnit)
 }
 
 object Dependency {
@@ -63,6 +63,7 @@ object Dependency {
   // ---- Application dependencies ----
 
   val akkaActor     = "com.typesafe.akka"         % "akka-actor"          % Version.Akka
+  val akkaKernel    = "com.typesafe.akka"         % "akka-kernel"              % Version.Akka
 
   // ---- Test dependencies ----
 

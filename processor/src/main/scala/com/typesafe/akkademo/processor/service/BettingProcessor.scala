@@ -12,6 +12,7 @@ class BettingProcessor extends Actor {
 
   /**s
   * TASKS : 
+  * Send remote registration message to service
   * Create worker for dangerous task (using UnstableRepository actor)
   * Supervise worker -> handle errors
   * Send confirmation message back to Betting service
@@ -25,7 +26,7 @@ class BettingProcessor extends Actor {
 			
 	  // ADD YOUR CODE BELOW
 	  m match { 
-		case bet: PlayerBet =>
+		  case bet: PlayerBet =>
 	  }
   }
 }
