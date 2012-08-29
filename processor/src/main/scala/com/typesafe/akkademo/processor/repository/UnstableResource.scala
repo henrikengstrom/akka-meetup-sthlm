@@ -11,20 +11,20 @@ trait UnstableResource {
 }
 
 class ReallyUnstableResource extends UnstableResource {
-	import java.util.concurrent.atomic.AtomicInteger
+  import java.util.concurrent.atomic.AtomicInteger
 
-	var seq = new AtomicInteger()
+  var seq = new AtomicInteger()
   val bets = scala.collection.mutable.Map[Int, Bet]()
 
   def save(player: String, game: Int, amount: Int) = {
-  	val id = seq.getAndIncrement
+    val id = seq.getAndIncrement
     if (id % 3 == 0) throw new RuntimeException("Hey, I did not count on this happening...")
     if (id % 5 == 0) throw new DatabaseFailureException("Help. The database's gone haywire!")
-  	bets += id -> Bet(player, game, amount)
+    bets += id -> Bet(player, game, amount)
   }
 
   def findAll: Seq[Bet] = {
-  	bets.values.toSeq
+    bets.values.toSeq
   }
 }
 

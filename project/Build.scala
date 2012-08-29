@@ -1,5 +1,8 @@
 import sbt._
 import sbt.Keys._
+import com.typesafe.startscript.StartScriptPlugin
+import com.typesafe.sbtscalariform.ScalariformPlugin
+import com.typesafe.sbtscalariform.ScalariformPlugin.ScalariformKeys
 
 object AkkaDemoBuild extends Build {
   val Organization = "akkademo"
@@ -9,8 +12,11 @@ object AkkaDemoBuild extends Build {
   lazy val akkademo = Project(
     id = "akkademo",
     base = file("."),
+    settings = defaultSettings ++
+      Seq(StartScriptPlugin.stage in Compile := Unit),
     aggregate = Seq(common, processor, service)
   )
+
 
   lazy val common = Project(
     id = "common",
@@ -22,21 +28,21 @@ object AkkaDemoBuild extends Build {
     id = "processor",
     base = file("processor"),
     dependencies = Seq(common),
-    settings = defaultSettings ++ Seq(
-      libraryDependencies ++= Dependencies.akkademo
-    )
+    settings = defaultSettings ++
+    StartScriptPlugin.startScriptForClassesSettings ++
+    Seq(libraryDependencies ++= Dependencies.akkademo)
   )
 
   lazy val service = Project(
     id = "service",
     base = file("service"),
     dependencies = Seq(common),
-    settings = defaultSettings ++ Seq(
-      libraryDependencies ++= Dependencies.akkademo
-    )
+    settings = defaultSettings ++
+    StartScriptPlugin.startScriptForClassesSettings ++
+    Seq(libraryDependencies ++= Dependencies.akkademo)
   )
 
-  lazy val defaultSettings = Defaults.defaultSettings ++ Seq(
+  lazy val defaultSettings = Defaults.defaultSettings ++ formatSettings ++ Seq(
     resolvers += "Typesafe Repo" at "http://repo.typesafe.com/typesafe/releases/",
 
     // compile options
@@ -45,12 +51,25 @@ object AkkaDemoBuild extends Build {
 
     // disable parallel tests
     parallelExecution in Test := false
-  )  
+  )
+
+  lazy val formatSettings = ScalariformPlugin.scalariformSettings ++ Seq(
+    ScalariformKeys.preferences in Compile := formattingPreferences,
+    ScalariformKeys.preferences in Test    := formattingPreferences
+  )
+
+  def formattingPreferences = {
+    import scalariform.formatter.preferences._
+    FormattingPreferences()
+      .setPreference(RewriteArrowSymbols, true)
+      .setPreference(AlignParameters, true)
+      .setPreference(AlignSingleLineCaseStatements, true)
+  }
 }
 
 object Dependencies {
   import Dependency._
-  val akkademo = Seq(akkaActor, akkaKernel, scalaTest, jUnit)
+  val akkademo = Seq(akkaActor, akkaRemote, scalaTest, jUnit)
 }
 
 object Dependency {
@@ -62,8 +81,8 @@ object Dependency {
 
   // ---- Application dependencies ----
 
-  val akkaActor     = "com.typesafe.akka"         % "akka-actor"          % Version.Akka
-  val akkaKernel    = "com.typesafe.akka"         % "akka-kernel"              % Version.Akka
+  val akkaActor   = "com.typesafe.akka"   % "akka-actor"              % Version.Akka
+  val akkaRemote  = "com.typesafe.akka"   % "akka-remote"             % Version.Akka
 
   // ---- Test dependencies ----
 

@@ -3,20 +3,14 @@
  */
 package com.typesafe.akkademo.processor
 
-import akka.kernel.Bootable
 import akka.actor.{ Props, ActorSystem }
 import com.typesafe.config._
 import com.typesafe.akkademo.processor.service.BettingProcessor
 
-class BettingProcessorApplication extends Bootable {
-	val config = ConfigFactory.load()
-	val system = ActorSystem("BettingProcessorActorSystem", config)
+object BettingProcessorApplication extends App {
+  val config = ConfigFactory.load()
 
-	def startup = {
-		system.actorOf(Props[BettingProcessor], "bettingProcessor")
-  }
- 
-  def shutdown = {
-    system.shutdown()
-  }
+  val system = ActorSystem("BettingProcessorActorSystem", config)
+
+  val bettingProcessor = system.actorOf(Props[BettingProcessor], "bettingProcessor")
 }
