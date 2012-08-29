@@ -4,7 +4,7 @@
 package com.typesafe.akkademo.processor.service
 
 import akka.actor.Actor
-import com.typesafe.akkademo.common.PlayerBet
+import com.typesafe.akkademo.common.{PlayerBet, RetrieveBets}
 
 class BettingProcessor extends Actor {
 
@@ -27,6 +27,7 @@ class BettingProcessor extends Actor {
 	  // ADD YOUR CODE BELOW
 	  m match { 
 		  case bet: PlayerBet =>
+      case RetrieveBets => 
 	  }
   }
 }

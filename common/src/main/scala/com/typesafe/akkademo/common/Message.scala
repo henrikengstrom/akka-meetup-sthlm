@@ -8,3 +8,5 @@ case class Bet(player: String, game: Int, amount: Int)
 case class PlayerBet(id: Long, bet: Bet)
 
 case class ConfirmationMessage(id: Long)
+
+case object RetrieveBets
