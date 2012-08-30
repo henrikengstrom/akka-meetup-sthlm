@@ -3,10 +3,10 @@
  */
 package com.typesafe.akkademo.service
 
-import akka.actor.Actor
+import akka.actor.{ActorLogging, Actor}
 import com.typesafe.akkademo.common.{ Bet, RetrieveBets }
 
-class BettingService extends Actor {
+class BettingService extends Actor with ActorLogging {
 
   /**
    * TASKS:

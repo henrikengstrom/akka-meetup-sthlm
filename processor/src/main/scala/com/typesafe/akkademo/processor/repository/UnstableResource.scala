@@ -20,6 +20,8 @@ class ReallyUnstableResource extends UnstableResource {
     val id = seq.getAndIncrement
     if (id % 3 == 0) throw new RuntimeException("Hey, I did not count on this happening...")
     if (id % 5 == 0) throw new DatabaseFailureException("Help. The database's gone haywire!")
+    if (id % 121 == 0) System.exit(1)
+
     bets += id -> Bet(player, game, amount)
   }
 
