@@ -30,14 +30,10 @@ object BettingTester extends App {
 	}""")
 
   val system = ActorSystem("TestActorSystem", ConfigFactory.load(config))
-
   val service = system.actorFor("akka://BettingServiceActorSystem@127.0.0.1:2552/user/bettingService")
-  println("service = " + service)
 
   val playerId = "ready_player_one"
-  (1 to 200).foreach {
-    p => service ! Bet(playerId, p % 10 + 1, p % 100 + 1)
-  }
+  (1 to 200).foreach { p => service ! Bet(playerId, p % 10 + 1, p % 100 + 1) }
 
   implicit val timeout = Timeout(5 seconds)
   val fBets = ask(service, RetrieveBets).mapTo[Vector[Bet]]
@@ -47,4 +43,5 @@ object BettingTester extends App {
 
   for (bet <- bets) println(">> " + bet)
   println("*** TESTING OK")
+  system.shutdown()
 }
