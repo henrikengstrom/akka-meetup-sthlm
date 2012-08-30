@@ -14,7 +14,9 @@ class BettingService extends Actor {
    * Create PlayerBet and call betting processor (remotely)
    * Retrieve all bets from betting processor (remotely)
    * Handle timed out transactions (scheduler)
-   * Handle registration message from betting processor + keep any message locally until there is a processor service available
+   * Handle registration message from betting processor
+   * Handle crash of/unavailable betting processor
+   * Keep any message locally until there is a processor service available
    */
 
   def receive = {
