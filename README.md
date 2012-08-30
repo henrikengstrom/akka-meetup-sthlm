@@ -73,6 +73,12 @@ handle confirmation messages from the betting processor. It also handles re-send
 The task of the betting processor is to spawn workers that do the dangerous job (in this case interacting with an unstable service), 
 supervise these workers and send back confirmation that a task has been performed. 
 
+The _betting service_ should be able to function without any available _betting processor_, i.e. should it receive bet(s) before the _betting processor_ has
+registered it should keep these bets locally and send them as soon as a _betting processor_ becomes available.
+
+Sometimes your servers crash(!) and therefore you should design with this in mind. Sending too many, read 121, bets to the _betting processor_ will cause
+it to crash. It is an essential part of this kata to make sure that the _betting service_ can handle such a crash.
+
 We will provide some alternative implementations to show how to solve the different tasks/assignments raised in the code (see comments in provided code).
 
 ## Authors
