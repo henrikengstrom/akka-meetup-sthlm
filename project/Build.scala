@@ -42,6 +42,15 @@ object AkkaDemoBuild extends Build {
     Seq(libraryDependencies ++= Dependencies.akkademo)
   )
 
+  lazy val client = Project(
+    id = "client",
+    base = file("client"),
+    dependencies = Seq(common, service),
+    settings = defaultSettings ++
+      StartScriptPlugin.startScriptForClassesSettings ++
+      Seq(libraryDependencies ++= Dependencies.akkademo)
+  )
+
   lazy val defaultSettings = Defaults.defaultSettings ++ formatSettings ++ Seq(
     resolvers += "Typesafe Repo" at "http://repo.typesafe.com/typesafe/releases/",
 

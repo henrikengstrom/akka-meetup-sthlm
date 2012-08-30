@@ -5,8 +5,8 @@ package com.typesafe.akkademo.common
 
 case class Bet(player: String, game: Int, amount: Int)
 
-case class PlayerBet(id: Long, bet: Bet)
+case class PlayerBet(id: Int, bet: Bet)
 
-case class ConfirmationMessage(id: Long)
+case class ConfirmationMessage(id: Int)
 
 case object RetrieveBets

@@ -79,7 +79,7 @@ registered it should keep these bets locally and send them as soon as a _betting
 Sometimes your servers crash(!) and therefore you should design with this in mind. Sending too many, read 121, bets to the _betting processor_ will cause
 it to crash. It is an essential part of this kata to make sure that the _betting service_ can handle such a crash.
 
-We will provide some alternative implementations to show how to solve the different tasks/assignments raised in the code (see comments in provided code).
+We will provide some alternative implementations to show how to solve the different tasks/assignments raised in the code (see comments in provided code). 
 
 ## Authors
 
