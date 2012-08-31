@@ -12,7 +12,7 @@ import com.typesafe.config.ConfigFactory
 import com.typesafe.akkademo.common.{Bet, RetrieveBets}
 import com.typesafe.akkademo.common.Bet
 
-object BettingTester extends App {
+object BetClient extends App {
 
   override def main(args: Array[String]): Unit = {
     println("*** STARTING TEST OF BETTING APPLICATION")
