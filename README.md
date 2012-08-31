@@ -81,6 +81,30 @@ it to crash. It is an essential part of this kata to make sure that the _betting
 
 We will provide some alternative implementations to show how to solve the different tasks/assignments raised in the code (see comments in provided code). 
 
+## Starting The Parts of the Kata
+
+To start the _betting service_ and the _betting processor_ you should create some start scripts. This is easily done by using with the command:
+
+```
+> sbt start-script
+```
+
+This will create bash scripts in `service/target/start`, `processor/target/start` and `client/target/start`. To start things you just have to run the scripts from different command prompts starting with `service` followed by `processor`.
+
+If you're on Windows without access to a bash shell then you will have to copy the command line and arguments into a script of your own, and rewrite the paths to windows style paths.
+
+**Do not place the scripts in a target directory since they will be deleted if you do:**
+
+```
+> sbt clean
+```
+
+To start testing your application you can issue the command:
+
+```
+> client/target/start send
+```
+
 ## Authors
 
 * Henrik Engström : [@h3nk3](http://twitter.com/h3nk3)

@@ -14,7 +14,7 @@ object AkkaDemoBuild extends Build {
     base = file("."),
     settings = defaultSettings ++
       Seq(StartScriptPlugin.stage in Compile := Unit),
-    aggregate = Seq(common, processor, service)
+    aggregate = Seq(common, processor, service, client)
   )
 
 

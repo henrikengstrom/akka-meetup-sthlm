@@ -3,7 +3,7 @@
  */
 package com.typesafe.akkademo.processor.service
 
-import akka.actor.{ActorLogging, Actor}
+import akka.actor.{ ActorLogging, Actor }
 import com.typesafe.akkademo.common.{ PlayerBet, RetrieveBets }
 
 class BettingProcessor extends Actor with ActorLogging {
