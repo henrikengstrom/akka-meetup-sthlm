@@ -6,23 +6,20 @@ package com.typesafe.akkademo.processor.repository
 import com.typesafe.akkademo.common._
 
 trait UnstableResource {
-  def save(player: String, game: Int, amount: Int): Unit
+  def save(idempotentId: Int, player: String, game: Int, amount: Int): Unit
   def findAll: Seq[Bet]
 }
 
 class ReallyUnstableResource extends UnstableResource {
-  import java.util.concurrent.atomic.AtomicInteger
-
-  var seq = new AtomicInteger()
   val bets = scala.collection.mutable.Map[Int, Bet]()
+  val randomizer = new scala.util.Random
 
-  def save(player: String, game: Int, amount: Int) = {
-    val id = seq.getAndIncrement
-    if (id % 3 == 0) throw new RuntimeException("Hey, I did not count on this happening...")
-    if (id % 5 == 0) throw new DatabaseFailureException("Help. The database's gone haywire!")
-    if (id % 121 == 0) System.exit(1)
+  def save(id: Int, player: String, game: Int, amount: Int) = {
+    if (id % (randomizer.nextInt(10) + 10) == 0) throw new RuntimeException("Hey, I did not count on this happening...")
+    if (id % (randomizer.nextInt(17) + 17) == 0) throw new DatabaseFailureException("Help. The database's gone haywire!")
+    if (id % (randomizer.nextInt(121) + 50) == 0) System.exit(1)
 
-    bets += id -> Bet(player, game, amount)
+    if (!bets.contains(id)) bets += id -> Bet(player, game, amount)
   }
 
   def findAll: Seq[Bet] = {
