@@ -5,7 +5,7 @@ package com.typesafe.akkademo.processor
 
 import akka.actor.{ Props, ActorSystem }
 import com.typesafe.config._
-import com.typesafe.akkademo.processor.service.BettingProcessor
+import service.{InitializeProcessor, BettingProcessor}
 
 object BettingProcessorApplication extends App {
   val config = ConfigFactory.load()
@@ -13,4 +13,6 @@ object BettingProcessorApplication extends App {
   val system = ActorSystem("BettingProcessorActorSystem", config)
 
   val bettingProcessor = system.actorOf(Props[BettingProcessor], "bettingProcessor")
+
+  bettingProcessor ! InitializeProcessor
 }

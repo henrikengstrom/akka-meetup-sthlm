@@ -3,20 +3,35 @@
  */
 package com.typesafe.akkademo.processor.service
 
-import akka.actor.{ ActorLogging, Actor }
-import com.typesafe.akkademo.common.{ PlayerBet, RetrieveBets }
+import akka.actor.{OneForOneStrategy, Props, ActorLogging, Actor}
+import com.typesafe.akkademo.common.{RegisterProcessor, PlayerBet, RetrieveBets}
+import com.typesafe.akkademo.processor.service.ProcessorWorker
+import akka.actor.SupervisorStrategy.Restart
+import com.typesafe.akkademo.processor.repository.DatabaseFailureException
+
+case object InitializeProcessor
 
 class BettingProcessor extends Actor with ActorLogging {
 
-  /**
-   * TASKS :
-   * Send remote registration message to service
-   * Create worker for dangerous task (using UnstableRepository actor)
-   * Supervise worker -> handle errors
-   * Send confirmation message back to Betting service
-   */
+  val worker = context.actorOf(Props[ProcessorWorker], "theWorker")
+
+  override val supervisorStrategy = OneForOneStrategy() {
+    case r: RuntimeException => Restart
+    case d: DatabaseFailureException => Restart
+    // Read more about fault tolerance here: http://doc.akka.io/docs/akka/2.0.3/scala/fault-tolerance.html
+  }
+
   def receive = {
+    case InitializeProcessor =>
+      log.info("Processor initializing...")
+      context.actorFor(context.system.settings.config.getString("betting-service-actor")) ! RegisterProcessor
+
     case bet: PlayerBet ⇒
+      log.info("Storing bet: " + bet)
+      worker.tell(bet, sender)
+
     case RetrieveBets   ⇒
+      log.info("Retrieving all bets")
+      worker.tell(RetrieveBets, sender)
   }
 }
