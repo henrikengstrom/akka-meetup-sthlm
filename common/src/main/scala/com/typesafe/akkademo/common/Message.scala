@@ -10,3 +10,5 @@ case class PlayerBet(id: Int, bet: Bet)
 case class ConfirmationMessage(id: Int)
 
 case object RetrieveBets
+
+case object RegisterProcessor
