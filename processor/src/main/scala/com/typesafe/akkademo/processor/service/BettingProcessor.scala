@@ -5,7 +5,6 @@ package com.typesafe.akkademo.processor.service
 
 import akka.actor.{OneForOneStrategy, Props, ActorLogging, Actor}
 import com.typesafe.akkademo.common.{RegisterProcessor, PlayerBet, RetrieveBets}
-import com.typesafe.akkademo.processor.service.ProcessorWorker
 import akka.actor.SupervisorStrategy.Restart
 import com.typesafe.akkademo.processor.repository.DatabaseFailureException
 
@@ -26,11 +25,11 @@ class BettingProcessor extends Actor with ActorLogging {
       log.info("Processor initializing...")
       context.actorFor(context.system.settings.config.getString("betting-service-actor")) ! RegisterProcessor
 
-    case bet: PlayerBet ⇒
+    case bet: PlayerBet =>
       log.info("Storing bet: " + bet)
       worker.tell(bet, sender)
 
-    case RetrieveBets   ⇒
+    case RetrieveBets   =>
       log.info("Retrieving all bets")
       worker.tell(RetrieveBets, sender)
   }

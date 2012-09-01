@@ -30,10 +30,10 @@ class BettingService extends Actor with ActorLogging {
     case RegisterProcessor    =>
       log.info("processor registered")
       processor = Some(sender)
-    case bet: Bet     ⇒
+    case bet: Bet     =>
       val playerBet = processBet(bet)
       for (p <- processor) p ! playerBet
-    case RetrieveBets ⇒
+    case RetrieveBets =>
       log.info("retrieving bets perhaps... processor defined? -> " + processor.isDefined)
       for (p <- processor) p.tell(RetrieveBets, sender)
     case ConfirmationMessage(id) => handleProcessedBet(id)
