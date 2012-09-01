@@ -29,7 +29,7 @@ See [Actors](http://doc.akka.io/docs/akka/2.0.3/scala/actors.html)
 
 **Creating actors**
 
-In the system context, called top level actors (to be used sparsely) 
+In the system context, called top level actors (to be used sparsely)
 
 ```
 val myActor = system.actorOf(Props[MyActor], "myActorName")
@@ -106,7 +106,7 @@ def receive = {
 
 **Scheduling messages**
 
-To scheduke a message send sometime in the future, once or repeatedly use the scheduler.
+To schedule a message send sometime in the future, once or repeatedly use the scheduler.
 
 See [Scheduler](http://doc.akka.io/docs/akka/2.0.3/scala/scheduler.html)
 
