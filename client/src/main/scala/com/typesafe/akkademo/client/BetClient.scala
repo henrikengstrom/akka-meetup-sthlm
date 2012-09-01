@@ -34,18 +34,18 @@ object BetClient extends App {
   val service = system.actorFor("akka://BettingServiceActorSystem@127.0.0.1:2552/user/bettingService")
 
   try {
-    if (args.size > 0 && args(0) == "send") {
-      (1 to 200).foreach {
-        p => service ! Bet("ready_player_one", p % 10 + 1, p % 100 + 1)
-      }
+    // create the list of bets
+    val bets = (1 to 200).map(p ⇒ Bet("ready_player_one", p % 10 + 1, p % 100 + 1))
+
+    if (args.size > 0 && args.head == "send") {
+      bets.foreach(bet ⇒ service ! bet)
+      println("*** SENDING OK")
     } else {
       implicit val timeout = Timeout(2 seconds)
       val fBets = ask(service, RetrieveBets).mapTo[List[Bet]]
-      Await.result(fBets, 5 seconds)
-      fBets.foreach { b => println(">> " + b) }
+      assert(Await.result(fBets, 5 seconds).sorted == bets.sorted)
+      println("*** TESTING OK")
     }
-
-    println("*** TESTING OK")
   } finally {
     system.shutdown()
   }

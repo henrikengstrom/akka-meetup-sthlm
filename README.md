@@ -89,7 +89,7 @@ To start the _betting service_ and the _betting processor_ you should create som
 > sbt start-script
 ```
 
-This will create bash scripts in `service/target/start`, `processor/target/start` and `client/target/start`. To start things you just have to run the scripts from different command prompts starting with `service` followed by `processor`.
+This will create bash scripts in `service/target/start`, `processor/target/start` and `client/target/start`. To start things you just have to run the scripts from different command prompts in the top level project directory starting with `service` followed by `processor`.
 
 If you're on Windows without access to a bash shell then you will have to copy the command line and arguments into a script of your own, and rewrite the paths to windows style paths.
 
@@ -104,6 +104,15 @@ To start testing your application you can issue the command:
 ```
 > client/target/start send
 ```
+
+And to check the results you issue the command:
+
+```
+> client/target/start
+```
+
+Remember to clean out the _persistent store_ of bets in between runs of your system. It is stored in the file `persistent_store` in the top level project directory.
+
 
 ## Authors
 

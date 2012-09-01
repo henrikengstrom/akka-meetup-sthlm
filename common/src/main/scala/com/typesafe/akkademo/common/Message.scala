@@ -12,3 +12,20 @@ case class ConfirmationMessage(id: Int)
 case object RetrieveBets
 
 case object RegisterProcessor
+
+object Bet {
+  implicit object BetOrdering extends Ordering[Bet] {
+    def compare(a: Bet, b: Bet): Int = {
+      val p = a.player compare b.player
+      if (p == 0) {
+        val g = a.game compare b.game
+        if (g == 0) {
+          a.amount compare b.amount
+        } else
+          g
+      } else
+        p
+    }
+  }
+}
+
