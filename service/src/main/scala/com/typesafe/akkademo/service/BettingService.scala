@@ -20,7 +20,7 @@ class BettingService extends Actor with ActorLogging {
    */
 
   def receive = {
-    case bet: Bet     ⇒
-    case RetrieveBets ⇒
+    case bet: Bet     =>
+    case RetrieveBets =>
   }
 }

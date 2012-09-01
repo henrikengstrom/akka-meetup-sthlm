@@ -12,6 +12,7 @@
 .classpath
 .project
 .settings
+.cache
 
 # sbt specific
 dist/*

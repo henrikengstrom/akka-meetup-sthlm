@@ -36,13 +36,13 @@ object BetClient extends App {
   try {
     if (args.size > 0 && args(0) == "send") {
       (1 to 200).foreach {
-        p ⇒ service ! Bet("ready_player_one", p % 10 + 1, p % 100 + 1)
+        p => service ! Bet("ready_player_one", p % 10 + 1, p % 100 + 1)
       }
     } else {
       implicit val timeout = Timeout(2 seconds)
       val fBets = ask(service, RetrieveBets).mapTo[List[Bet]]
       Await.result(fBets, 5 seconds)
-      fBets.foreach { b ⇒ println(">> " + b) }
+      fBets.foreach { b => println(">> " + b) }
     }
 
     println("*** TESTING OK")

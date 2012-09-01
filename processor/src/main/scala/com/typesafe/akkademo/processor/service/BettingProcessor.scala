@@ -16,7 +16,7 @@ class BettingProcessor extends Actor with ActorLogging {
    * Send confirmation message back to Betting service
    */
   def receive = {
-    case bet: PlayerBet ⇒
-    case RetrieveBets   ⇒
+    case bet: PlayerBet =>
+    case RetrieveBets   =>
   }
 }
