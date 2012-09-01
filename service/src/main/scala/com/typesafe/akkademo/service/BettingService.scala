@@ -27,18 +27,18 @@ class BettingService extends Actor with ActorLogging {
   context.system.scheduler.schedule(2 seconds, 2 seconds, self, HandleUnprocessedBets)
 
   def receive = {
-    case RegisterProcessor    =>
+    case RegisterProcessor ⇒
       log.info("processor registered")
       processor = Some(sender)
-    case bet: Bet     =>
+    case bet: Bet ⇒
       val playerBet = processBet(bet)
-      for (p <- processor) p ! playerBet
-    case RetrieveBets =>
+      for (p ← processor) p ! playerBet
+    case RetrieveBets ⇒
       log.info("retrieving bets perhaps... processor defined? -> " + processor.isDefined)
-      for (p <- processor) p.tell(RetrieveBets, sender)
-    case ConfirmationMessage(id) => handleProcessedBet(id)
-    case HandleUnprocessedBets => handleUnprocessedBets()
-    case r: RemoteServerClientDisconnected =>
+      for (p ← processor) p.tell(RetrieveBets, sender)
+    case ConfirmationMessage(id) ⇒ handleProcessedBet(id)
+    case HandleUnprocessedBets   ⇒ handleUnprocessedBets()
+    case r: RemoteServerClientDisconnected ⇒
       log.info("processor unregistered")
       processor = None
   }
@@ -62,6 +62,6 @@ class BettingService extends Actor with ActorLogging {
     // Please make sure you understand that I can do this since the processor repository is idempotent!
 
     log.info("handling unprocessed bets (size): " + bets.size)
-    if (processor.isDefined) bets.keys.foreach { k => for (p <- processor) p ! PlayerBet(k, bets(k)) }
+    if (processor.isDefined) bets.keys.foreach { k ⇒ for (p ← processor) p ! PlayerBet(k, bets(k)) }
   }
 }
