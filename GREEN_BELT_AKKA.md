@@ -12,7 +12,7 @@ Below is a brief introduction of some concepts you will need for this kata with 
 
 ### Actor Systems
 
-An actor system is, among other things, the context in which actors operate.
+An actor system is, among other things, the context in which actors operate. You can have multiple actor systems within the same JVM.
 
 See [Actor Systems](http://doc.akka.io/docs/akka/2.0.3/general/actor-systems.html)
 
@@ -29,12 +29,13 @@ See [Actors](http://doc.akka.io/docs/akka/2.0.3/scala/actors.html)
 
 **Creating actors**
 
-In system context ()to be use sparesly) 
+In the system context, called top level actors (to be used sparsely) 
 
 ```
 val myActor = system.actorOf(Props[MyActor], "myActorName")
 ```
-In actor context (i.e. when you already have an actor)
+
+In the actor context, called children (i.e. when you're inside an actor)
 
 ```
 val myActor = context.actorOf(Props[MyActor], "myActorName")
@@ -48,9 +49,11 @@ Fire and forget
 myActor ! "A message"
 ```
 
-As futures
+As futures (has performance implications)
 
 ```
+import akka.pattern.ask
+
 val myFuture = myActor ? "A message"
 ```
 
