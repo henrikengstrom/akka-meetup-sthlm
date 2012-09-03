@@ -113,6 +113,9 @@ And to check the results you issue the command:
 
 Remember to clean out the _persistent store_ of bets in between runs of your system. It is stored in the file `persistent_store` in the top level project directory.
 
+## Green Belt Akka
+
+For a small collection of akka information useful for this kata see [Green Belt Akka](./GREEN_BELT_AKKA.md)
 
 ## Authors
 
