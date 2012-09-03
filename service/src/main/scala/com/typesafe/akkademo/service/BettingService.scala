@@ -38,9 +38,10 @@ class BettingService extends Actor with ActorLogging {
       for (p ← processor) p.tell(RetrieveBets, sender)
     case ConfirmationMessage(id) ⇒ handleProcessedBet(id)
     case HandleUnprocessedBets   ⇒ handleUnprocessedBets()
-    case r: RemoteServerClientDisconnected ⇒
-      log.info("processor unregistered")
-      processor = None
+    case rscd: RemoteServerClientDisconnected ⇒
+      if (processor.map(x ⇒ x.path.address) == rscd.getClientAddress()) {
+        processor = None
+      }      
   }
 
   def processBet(bet: Bet): PlayerBet = {
