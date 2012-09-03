@@ -115,7 +115,7 @@ Remember to clean out the _persistent store_ of bets in between runs of your sys
 
 ## Green Belt Akka
 
-For a small collection of akka information useful for this kata see [Green Belt Akka](./GREEN_BELT_AKKA.md)
+For a small collection of akka information useful for this kata see [Green Belt Akka](https://github.com/henrikengstrom/akka-meetup-sthlm/blob/master/GREEN_BELT_AKKA.md)
 
 ## Authors
 
