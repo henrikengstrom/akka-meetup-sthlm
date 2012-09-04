@@ -1,0 +1,405 @@
+From 918d24485de8ff169edf358360b6c0cf9777c8bc Mon Sep 17 00:00:00 2001
+From: Henrik Engstrom <henrik.engstrom@gmail.com>
+Date: Fri, 31 Aug 2012 18:02:57 +0200
+Subject: [PATCH 1/6] possible solution - needs some hardening though
+
+---
+ .../processor/BettingProcessorApplication.scala    |    4 +-
+ .../processor/service/BettingProcessor.scala       |   35 +++++++---
+ .../processor/service/ProcessorWorker.scala        |   24 +++++++
+ .../typesafe/akkademo/service/BettingService.scala |   67 ++++++++++++++++----
+ 4 files changed, 106 insertions(+), 24 deletions(-)
+ create mode 100644 processor/src/main/scala/com/typesafe/akkademo/processor/service/ProcessorWorker.scala
+
+diff --git a/processor/src/main/scala/com/typesafe/akkademo/processor/BettingProcessorApplication.scala b/processor/src/main/scala/com/typesafe/akkademo/processor/BettingProcessorApplication.scala
+index 7cada28..22a6476 100644
+--- a/processor/src/main/scala/com/typesafe/akkademo/processor/BettingProcessorApplication.scala
++++ b/processor/src/main/scala/com/typesafe/akkademo/processor/BettingProcessorApplication.scala
+@@ -5,7 +5,7 @@ package com.typesafe.akkademo.processor
+ 
+ import akka.actor.{ Props, ActorSystem }
+ import com.typesafe.config._
+-import com.typesafe.akkademo.processor.service.BettingProcessor
++import service.{InitializeProcessor, BettingProcessor}
+ 
+ object BettingProcessorApplication extends App {
+   val config = ConfigFactory.load()
+@@ -13,4 +13,6 @@ object BettingProcessorApplication extends App {
+   val system = ActorSystem("BettingProcessorActorSystem", config)
+ 
+   val bettingProcessor = system.actorOf(Props[BettingProcessor], "bettingProcessor")
++
++  bettingProcessor ! InitializeProcessor
+ }
+diff --git a/processor/src/main/scala/com/typesafe/akkademo/processor/service/BettingProcessor.scala b/processor/src/main/scala/com/typesafe/akkademo/processor/service/BettingProcessor.scala
+index 19472e2..eccf5ab 100644
+--- a/processor/src/main/scala/com/typesafe/akkademo/processor/service/BettingProcessor.scala
++++ b/processor/src/main/scala/com/typesafe/akkademo/processor/service/BettingProcessor.scala
+@@ -3,20 +3,35 @@
+  */
+ package com.typesafe.akkademo.processor.service
+ 
+-import akka.actor.{ ActorLogging, Actor }
+-import com.typesafe.akkademo.common.{ PlayerBet, RetrieveBets }
++import akka.actor.{OneForOneStrategy, Props, ActorLogging, Actor}
++import com.typesafe.akkademo.common.{RegisterProcessor, PlayerBet, RetrieveBets}
++import com.typesafe.akkademo.processor.service.ProcessorWorker
++import akka.actor.SupervisorStrategy.Restart
++import com.typesafe.akkademo.processor.repository.DatabaseFailureException
++
++case object InitializeProcessor
+ 
+ class BettingProcessor extends Actor with ActorLogging {
+ 
+-  /**
+-   * TASKS :
+-   * Send remote registration message to service
+-   * Create worker for dangerous task (using UnstableRepository actor)
+-   * Supervise worker -> handle errors
+-   * Send confirmation message back to Betting service
+-   */
++  val worker = context.actorOf(Props[ProcessorWorker], "theWorker")
++
++  override val supervisorStrategy = OneForOneStrategy() {
++    case r: RuntimeException => Restart
++    case d: DatabaseFailureException => Restart
++    // Read more about fault tolerance here: http://doc.akka.io/docs/akka/2.0.3/scala/fault-tolerance.html
++  }
++
+   def receive = {
++    case InitializeProcessor =>
++      log.info("Processor initializing...")
++      context.actorFor(context.system.settings.config.getString("betting-service-actor")) ! RegisterProcessor
++
+     case bet: PlayerBet ⇒
++      log.info("Storing bet: " + bet)
++      worker.tell(bet, sender)
++
+     case RetrieveBets   ⇒
++      log.info("Retrieving all bets")
++      worker.tell(RetrieveBets, sender)
+   }
+-}
++}
+\ No newline at end of file
+diff --git a/processor/src/main/scala/com/typesafe/akkademo/processor/service/ProcessorWorker.scala b/processor/src/main/scala/com/typesafe/akkademo/processor/service/ProcessorWorker.scala
+new file mode 100644
+index 0000000..4f816a8
+--- /dev/null
++++ b/processor/src/main/scala/com/typesafe/akkademo/processor/service/ProcessorWorker.scala
+@@ -0,0 +1,24 @@
++/**
++ *  Copyright (C) 2011-2012 Typesafe <http://typesafe.com/>
++ */
++package com.typesafe.akkademo.processor.service
++
++import akka.actor.Actor
++import com.typesafe.akkademo.common.{ConfirmationMessage, RetrieveBets, Bet, PlayerBet}
++import com.typesafe.akkademo.processor.repository.ReallyUnstableResource
++
++class ProcessorWorker extends Actor {
++  import ProcessorWorker._
++
++  def receive = {
++    case PlayerBet(id, Bet(player, game, amount)) =>
++      repo.save(id, player, game, amount)
++      sender ! ConfirmationMessage(id)
++    case RetrieveBets => sender ! repo.findAll.toList
++  }
++}
++
++// This companion object represents some sort of simple resource pool
++object ProcessorWorker {
++  val repo = new ReallyUnstableResource
++}
+diff --git a/service/src/main/scala/com/typesafe/akkademo/service/BettingService.scala b/service/src/main/scala/com/typesafe/akkademo/service/BettingService.scala
+index 29cae3b..178de9f 100644
+--- a/service/src/main/scala/com/typesafe/akkademo/service/BettingService.scala
++++ b/service/src/main/scala/com/typesafe/akkademo/service/BettingService.scala
+@@ -3,24 +3,65 @@
+  */
+ package com.typesafe.akkademo.service
+ 
+-import akka.actor.{ ActorLogging, Actor }
+-import com.typesafe.akkademo.common.{ Bet, RetrieveBets }
++import akka.actor._
++import akka.util.duration._
++import akka.remote.RemoteServerClientDisconnected
++
++import java.util.concurrent.atomic.AtomicInteger
++
++import com.typesafe.akkademo.common._
++import com.typesafe.akkademo.common.Bet
++import com.typesafe.akkademo.common.ConfirmationMessage
++import com.typesafe.akkademo.common.PlayerBet
++
++import scala.Some
++
++case object HandleUnprocessedBets
+ 
+ class BettingService extends Actor with ActorLogging {
++  val sequence = new AtomicInteger(1)
++  var processor: Option[ActorRef] = None
++  val bets = scala.collection.mutable.Map[Int, Bet]()
+ 
+-  /**
+-   * TASKS:
+-   * Create unique sequence/transaction number
+-   * Create PlayerBet and call betting processor (remotely)
+-   * Retrieve all bets from betting processor (remotely)
+-   * Handle timed out transactions (scheduler)
+-   * Handle registration message from betting processor
+-   * Handle crash of/unavailable betting processor
+-   * Keep any message locally until there is a processor service available
+-   */
++  context.system.eventStream.subscribe(self, classOf[RemoteServerClientDisconnected])
++  context.system.scheduler.schedule(2 seconds, 2 seconds, self, HandleUnprocessedBets)
+ 
+   def receive = {
++    case RegisterProcessor    =>
++      log.info("processor registered")
++      processor = Some(sender)
+     case bet: Bet     ⇒
++      val playerBet = processBet(bet)
++      for (p <- processor) p ! playerBet
+     case RetrieveBets ⇒
++      log.info("retrieving bets perhaps... processor defined? -> " + processor.isDefined)
++      for (p <- processor) p.tell(RetrieveBets, sender)
++    case ConfirmationMessage(id) => handleProcessedBet(id)
++    case HandleUnprocessedBets => handleUnprocessedBets()
++    case r: RemoteServerClientDisconnected =>
++      log.info("processor unregistered")
++      processor = None
++  }
++
++  def processBet(bet: Bet): PlayerBet = {
++    val id = sequence.getAndIncrement()
++    bets += id -> bet
++    PlayerBet(id, bet)
++  }
++
++  def handleProcessedBet(id: Int) = {
++    log.info("processed bet: " + id)
++    bets -= id
++  }
++
++  def handleUnprocessedBets() = {
++    // In a real world solution you should probably timestamp each message sent so that you do not
++    // resend just sent messages -> takes some pressure off the processor.
++
++    // Since this is just a demo I'll just treat all messages in the map as unhandled and resend them all.
++    // Please make sure you understand that I can do this since the processor repository is idempotent!
++
++    log.info("handling unprocessed bets (size): " + bets.size)
++    if (processor.isDefined) bets.keys.foreach { k => for (p <- processor) p ! PlayerBet(k, bets(k)) }
+   }
+-}
++}
+\ No newline at end of file
+-- 
+1.7.7.5 (Apple Git-26)
+
+
+From d5a1907209490e70ebc65139f810392c945cfe67 Mon Sep 17 00:00:00 2001
+From: Henrik Engstrom <henrik.engstrom@gmail.com>
+Date: Sat, 1 Sep 2012 11:51:34 +0200
+Subject: [PATCH 2/6] some minor changes
+
+---
+ .../processor/service/BettingProcessor.scala       |    5 ++---
+ .../typesafe/akkademo/service/BettingService.scala |    4 ++--
+ 2 files changed, 4 insertions(+), 5 deletions(-)
+
+diff --git a/processor/src/main/scala/com/typesafe/akkademo/processor/service/BettingProcessor.scala b/processor/src/main/scala/com/typesafe/akkademo/processor/service/BettingProcessor.scala
+index eccf5ab..97d402b 100644
+--- a/processor/src/main/scala/com/typesafe/akkademo/processor/service/BettingProcessor.scala
++++ b/processor/src/main/scala/com/typesafe/akkademo/processor/service/BettingProcessor.scala
+@@ -5,7 +5,6 @@ package com.typesafe.akkademo.processor.service
+ 
+ import akka.actor.{OneForOneStrategy, Props, ActorLogging, Actor}
+ import com.typesafe.akkademo.common.{RegisterProcessor, PlayerBet, RetrieveBets}
+-import com.typesafe.akkademo.processor.service.ProcessorWorker
+ import akka.actor.SupervisorStrategy.Restart
+ import com.typesafe.akkademo.processor.repository.DatabaseFailureException
+ 
+@@ -26,11 +25,11 @@ class BettingProcessor extends Actor with ActorLogging {
+       log.info("Processor initializing...")
+       context.actorFor(context.system.settings.config.getString("betting-service-actor")) ! RegisterProcessor
+ 
+-    case bet: PlayerBet ⇒
++    case bet: PlayerBet =>
+       log.info("Storing bet: " + bet)
+       worker.tell(bet, sender)
+ 
+-    case RetrieveBets   ⇒
++    case RetrieveBets   =>
+       log.info("Retrieving all bets")
+       worker.tell(RetrieveBets, sender)
+   }
+diff --git a/service/src/main/scala/com/typesafe/akkademo/service/BettingService.scala b/service/src/main/scala/com/typesafe/akkademo/service/BettingService.scala
+index 178de9f..4decd58 100644
+--- a/service/src/main/scala/com/typesafe/akkademo/service/BettingService.scala
++++ b/service/src/main/scala/com/typesafe/akkademo/service/BettingService.scala
+@@ -30,10 +30,10 @@ class BettingService extends Actor with ActorLogging {
+     case RegisterProcessor    =>
+       log.info("processor registered")
+       processor = Some(sender)
+-    case bet: Bet     ⇒
++    case bet: Bet     =>
+       val playerBet = processBet(bet)
+       for (p <- processor) p ! playerBet
+-    case RetrieveBets ⇒
++    case RetrieveBets =>
+       log.info("retrieving bets perhaps... processor defined? -> " + processor.isDefined)
+       for (p <- processor) p.tell(RetrieveBets, sender)
+     case ConfirmationMessage(id) => handleProcessedBet(id)
+-- 
+1.7.7.5 (Apple Git-26)
+
+
+From 1e15c10770525d03d55bd69d7256e399497a4f9c Mon Sep 17 00:00:00 2001
+From: Henrik Engstrom <henrik.engstrom@gmail.com>
+Date: Sat, 1 Sep 2012 11:52:16 +0200
+Subject: [PATCH 3/6] ...
+
+---
+ .../typesafe/akkademo/service/BettingService.scala |   18 +++++++++---------
+ 1 files changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/service/src/main/scala/com/typesafe/akkademo/service/BettingService.scala b/service/src/main/scala/com/typesafe/akkademo/service/BettingService.scala
+index 4decd58..e4ad0d9 100644
+--- a/service/src/main/scala/com/typesafe/akkademo/service/BettingService.scala
++++ b/service/src/main/scala/com/typesafe/akkademo/service/BettingService.scala
+@@ -27,18 +27,18 @@ class BettingService extends Actor with ActorLogging {
+   context.system.scheduler.schedule(2 seconds, 2 seconds, self, HandleUnprocessedBets)
+ 
+   def receive = {
+-    case RegisterProcessor    =>
++    case RegisterProcessor ⇒
+       log.info("processor registered")
+       processor = Some(sender)
+-    case bet: Bet     =>
++    case bet: Bet ⇒
+       val playerBet = processBet(bet)
+-      for (p <- processor) p ! playerBet
+-    case RetrieveBets =>
++      for (p ← processor) p ! playerBet
++    case RetrieveBets ⇒
+       log.info("retrieving bets perhaps... processor defined? -> " + processor.isDefined)
+-      for (p <- processor) p.tell(RetrieveBets, sender)
+-    case ConfirmationMessage(id) => handleProcessedBet(id)
+-    case HandleUnprocessedBets => handleUnprocessedBets()
+-    case r: RemoteServerClientDisconnected =>
++      for (p ← processor) p.tell(RetrieveBets, sender)
++    case ConfirmationMessage(id) ⇒ handleProcessedBet(id)
++    case HandleUnprocessedBets   ⇒ handleUnprocessedBets()
++    case r: RemoteServerClientDisconnected ⇒
+       log.info("processor unregistered")
+       processor = None
+   }
+@@ -62,6 +62,6 @@ class BettingService extends Actor with ActorLogging {
+     // Please make sure you understand that I can do this since the processor repository is idempotent!
+ 
+     log.info("handling unprocessed bets (size): " + bets.size)
+-    if (processor.isDefined) bets.keys.foreach { k => for (p <- processor) p ! PlayerBet(k, bets(k)) }
++    if (processor.isDefined) bets.keys.foreach { k ⇒ for (p ← processor) p ! PlayerBet(k, bets(k)) }
+   }
+ }
+\ No newline at end of file
+-- 
+1.7.7.5 (Apple Git-26)
+
+
+From ea2106a7b71635e5855861ce8daf01aa9c298915 Mon Sep 17 00:00:00 2001
+From: Henrik Engstrom <henrik.engstrom@gmail.com>
+Date: Sat, 1 Sep 2012 14:06:37 +0200
+Subject: [PATCH 4/6] Added a brief overview of the concepts needed for this
+ kata
+
+---
+ GREEN_BELT_AKKA.md |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/GREEN_BELT_AKKA.md b/GREEN_BELT_AKKA.md
+index 41dc84d..fa3a033 100644
+--- a/GREEN_BELT_AKKA.md
++++ b/GREEN_BELT_AKKA.md
+@@ -29,7 +29,7 @@ See [Actors](http://doc.akka.io/docs/akka/2.0.3/scala/actors.html)
+ 
+ **Creating actors**
+ 
+-In the system context, called top level actors (to be used sparsely) 
++In the system context, called top level actors (to be used sparsely)
+ 
+ ```
+ val myActor = system.actorOf(Props[MyActor], "myActorName")
+@@ -106,7 +106,7 @@ def receive = {
+ 
+ **Scheduling messages**
+ 
+-To scheduke a message send sometime in the future, once or repeatedly use the scheduler.
++To schedule a message send sometime in the future, once or repeatedly use the scheduler.
+ 
+ See [Scheduler](http://doc.akka.io/docs/akka/2.0.3/scala/scheduler.html)
+ 
+-- 
+1.7.7.5 (Apple Git-26)
+
+
+From 0946b13ee6751240701a19271b31606b564640da Mon Sep 17 00:00:00 2001
+From: Henrik Engstrom <henrik.engstrom@gmail.com>
+Date: Mon, 3 Sep 2012 10:12:15 +0200
+Subject: [PATCH 5/6] Added check that it's the processor client shutting
+ down.
+
+---
+ .../typesafe/akkademo/service/BettingService.scala |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/service/src/main/scala/com/typesafe/akkademo/service/BettingService.scala b/service/src/main/scala/com/typesafe/akkademo/service/BettingService.scala
+index e4ad0d9..6ad6933 100644
+--- a/service/src/main/scala/com/typesafe/akkademo/service/BettingService.scala
++++ b/service/src/main/scala/com/typesafe/akkademo/service/BettingService.scala
+@@ -38,9 +38,10 @@ class BettingService extends Actor with ActorLogging {
+       for (p ← processor) p.tell(RetrieveBets, sender)
+     case ConfirmationMessage(id) ⇒ handleProcessedBet(id)
+     case HandleUnprocessedBets   ⇒ handleUnprocessedBets()
+-    case r: RemoteServerClientDisconnected ⇒
+-      log.info("processor unregistered")
+-      processor = None
++    case rscd: RemoteServerClientDisconnected ⇒
++      if (processor.map(x ⇒ x.path.address) == rscd.getClientAddress()) {
++        processor = None
++      }      
+   }
+ 
+   def processBet(bet: Bet): PlayerBet = {
+-- 
+1.7.7.5 (Apple Git-26)
+
+
+From 38149d2cdc5d4a407a999815ccfc5948ddfa29aa Mon Sep 17 00:00:00 2001
+From: Henrik Engstrom <henrik.engstrom@gmail.com>
+Date: Tue, 4 Sep 2012 18:52:48 +0200
+Subject: [PATCH 6/6] A small fix
+
+---
+ .../typesafe/akkademo/service/BettingService.scala |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/service/src/main/scala/com/typesafe/akkademo/service/BettingService.scala b/service/src/main/scala/com/typesafe/akkademo/service/BettingService.scala
+index 6ad6933..cb88b5b 100644
+--- a/service/src/main/scala/com/typesafe/akkademo/service/BettingService.scala
++++ b/service/src/main/scala/com/typesafe/akkademo/service/BettingService.scala
+@@ -41,7 +41,7 @@ class BettingService extends Actor with ActorLogging {
+     case rscd: RemoteServerClientDisconnected ⇒
+       if (processor.map(x ⇒ x.path.address) == rscd.getClientAddress()) {
+         processor = None
+-      }      
++      }
+   }
+ 
+   def processBet(bet: Bet): PlayerBet = {
+-- 
+1.7.7.5 (Apple Git-26)
+

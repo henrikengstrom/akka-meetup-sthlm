@@ -106,7 +106,7 @@ def receive = {
 
 **Scheduling messages**
 
-To scheduke a message send sometime in the future, once or repeatedly use the scheduler.
+To schedule a message to be sent sometime in the future, once or repeatedly use the scheduler.
 
 See [Scheduler](http://doc.akka.io/docs/akka/2.0.3/scala/scheduler.html)
 
