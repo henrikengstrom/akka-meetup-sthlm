@@ -86,23 +86,6 @@ override val supervisorStrategy = OneForOneStrategy() {
 
 ### Misc Tasks
 
-**Subscribing to events**
-
-Could be good to use when to find out things about the context you're operating in. All subscribed events will be sent to the actor as a message, i.e. you should handle them in the actor's receive method.
-
-See [Event Bus](http://doc.akka.io/docs/akka/2.0.3/scala/event-bus.html)
-
-```
-context.system.eventStream.subscribe(
-  self, 
-  classOf[RemoteServerClientDisconnected])
-    
-// …
-
-def receive = {
-  case r: RemoteServerClientDisconnected => println("Darn!!")
-}
-```
 
 **Scheduling messages**
 
