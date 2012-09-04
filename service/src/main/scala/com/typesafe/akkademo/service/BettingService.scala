@@ -41,7 +41,7 @@ class BettingService extends Actor with ActorLogging {
     case rscd: RemoteServerClientDisconnected ⇒
       if (processor.map(x ⇒ x.path.address) == rscd.getClientAddress()) {
         processor = None
-      }      
+      }
   }
 
   def processBet(bet: Bet): PlayerBet = {
