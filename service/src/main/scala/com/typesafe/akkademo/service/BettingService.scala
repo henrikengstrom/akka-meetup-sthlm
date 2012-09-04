@@ -21,10 +21,17 @@ case object HandleUnprocessedBets
 class BettingService extends Actor with ActorLogging {
   val sequence = new AtomicInteger(1)
   var processor: Option[ActorRef] = None
+
+  // Note: To make this solution (even) more bullet proof you would have to persist the incoming bets.
   val bets = scala.collection.mutable.Map[Int, Bet]()
 
   context.system.eventStream.subscribe(self, classOf[RemoteServerClientDisconnected])
-  context.system.scheduler.schedule(2 seconds, 2 seconds, self, HandleUnprocessedBets)
+  val scheduler = context.system.scheduler.schedule(2 seconds, 2 seconds, self, HandleUnprocessedBets)
+
+  override def postStop() {
+    // Prevents the scheduler from being scheduled more than once (in case of restart of this actor)
+    scheduler.cancel()
+  }
 
   def receive = {
     case RegisterProcessor ⇒
@@ -33,15 +40,13 @@ class BettingService extends Actor with ActorLogging {
     case bet: Bet ⇒
       val playerBet = processBet(bet)
       for (p ← processor) p ! playerBet
-    case RetrieveBets ⇒
-      log.info("retrieving bets perhaps... processor defined? -> " + processor.isDefined)
-      for (p ← processor) p.tell(RetrieveBets, sender)
+      for (p ← processor) p ! playerBet
+    case RetrieveBets ⇒ for (p ← processor) p.forward(RetrieveBets)
     case ConfirmationMessage(id) ⇒ handleProcessedBet(id)
     case HandleUnprocessedBets   ⇒ handleUnprocessedBets()
-    case rscd: RemoteServerClientDisconnected ⇒
-      if (processor.map(x ⇒ x.path.address) == rscd.getClientAddress()) {
-        processor = None
-      }
+    // In the upcoming clustering we will be able to listen to remote clients and their status.
+    // With this it will be possible to prevent sending messages to a client that is no longer available.
+    // e.g. case RemoteClientDead (or similar) => processor = None
   }
 
   def processBet(bet: Bet): PlayerBet = {

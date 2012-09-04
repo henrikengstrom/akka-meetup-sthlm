@@ -27,10 +27,10 @@ class BettingProcessor extends Actor with ActorLogging {
 
     case bet: PlayerBet =>
       log.info("Storing bet: " + bet)
-      worker.tell(bet, sender)
+      worker.forward(bet)
 
     case RetrieveBets   =>
       log.info("Retrieving all bets")
-      worker.tell(RetrieveBets, sender)
+      worker.forward(RetrieveBets)
   }
 }

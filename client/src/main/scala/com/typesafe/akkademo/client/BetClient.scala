@@ -42,11 +42,13 @@ object BetClient extends App {
       println("*** SENDING OK")
     } else {
       implicit val timeout = Timeout(2 seconds)
-      val fBets = ask(service, RetrieveBets).mapTo[List[Bet]]
+      val fBets = service.ask(RetrieveBets).mapTo[List[Bet]]
       assert(Await.result(fBets, 5 seconds).sorted == bets.sorted)
       println("*** TESTING OK")
     }
   } finally {
+    // Wait a little to make sure that everything is finished before shutting the AS down
+    Thread.sleep(1000)
     system.shutdown()
   }
 }
