@@ -4,6 +4,7 @@
 package com.typesafe.akkademo.processor.service
 
 import akka.actor.{OneForOneStrategy, Props, ActorLogging, Actor}
+import akka.util.duration._
 import com.typesafe.akkademo.common.{RegisterProcessor, PlayerBet, RetrieveBets}
 import akka.actor.SupervisorStrategy.Restart
 import com.typesafe.akkademo.processor.repository.DatabaseFailureException
@@ -13,6 +14,13 @@ case object InitializeProcessor
 class BettingProcessor extends Actor with ActorLogging {
 
   val worker = context.actorOf(Props[ProcessorWorker], "theWorker")
+  val service = context.actorFor(context.system.settings.config.getString("betting-service-actor"))
+  val scheduler = context.system.scheduler.schedule(1 seconds, 1 seconds, self, InitializeProcessor)
+
+  override def postStop() {
+    // Prevents the scheduler from being scheduled more than once (in case of restart of this actor)
+    scheduler.cancel()
+  }
 
   override val supervisorStrategy = OneForOneStrategy() {
     case r: RuntimeException => Restart
@@ -21,9 +29,7 @@ class BettingProcessor extends Actor with ActorLogging {
   }
 
   def receive = {
-    case InitializeProcessor =>
-      log.info("Processor initializing...")
-      context.actorFor(context.system.settings.config.getString("betting-service-actor")) ! RegisterProcessor
+    case InitializeProcessor => service ! RegisterProcessor
 
     case bet: PlayerBet =>
       log.info("Storing bet: " + bet)
