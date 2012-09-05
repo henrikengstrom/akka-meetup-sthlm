@@ -29,7 +29,7 @@ See [Actors](http://doc.akka.io/docs/akka/2.0.3/scala/actors.html)
 
 **Creating actors**
 
-In the system context, called top level actors (to be used sparsely) 
+In the system context, called top level actors (to be used sparsely). This creates an actor under "/user/myActorName".
 
 ```
 val myActor = system.actorOf(Props[MyActor], "myActorName")
@@ -39,6 +39,15 @@ In the actor context, called children (i.e. when you're inside an actor)
 
 ```
 val myActor = context.actorOf(Props[MyActor], "myActorName")
+```
+
+**Looking up actors**
+
+Look up an actor by name (complete path)
+
+```
+val myActor = system.actorFor("/user/myActorName")
+val remoteActor = system.actorFor("akka://OtherActorSystem@host:port/user/otherActorName")
 ```
 
 **Sending messages**
