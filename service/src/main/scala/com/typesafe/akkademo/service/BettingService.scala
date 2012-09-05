@@ -25,8 +25,6 @@ class BettingService extends Actor with ActorLogging {
 
   // Note: To make this solution (even) more bullet proof you would have to persist the incoming bets.
   val bets = scala.collection.mutable.Map[Int, Bet]()
-
-  context.system.eventStream.subscribe(self, classOf[RemoteServerClientDisconnected])
   val scheduler = context.system.scheduler.schedule(2 seconds, 2 seconds, self, HandleUnprocessedBets)
 
   override def postStop() {
@@ -38,7 +36,6 @@ class BettingService extends Actor with ActorLogging {
     case RegisterProcessor ⇒ registerProcessor(sender)
     case bet: Bet ⇒
       val playerBet = processBet(bet)
-      for (p ← getActiveProcessor) p ! playerBet
       for (p ← getActiveProcessor) p ! playerBet
     case RetrieveBets            ⇒ for (p ← getActiveProcessor) p.forward(RetrieveBets)
     case ConfirmationMessage(id) ⇒ handleProcessedBet(id)
@@ -56,7 +53,6 @@ class BettingService extends Actor with ActorLogging {
   def getActiveProcessor: Option[ActorRef] = {
     processor.flatMap {
       case (s, t) => if (System.currentTimeMillis - t < ActivePeriod) Some(s) else None
-      case _ => None
     }
   }
 
