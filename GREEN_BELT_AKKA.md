@@ -105,3 +105,13 @@ See [Scheduler](http://doc.akka.io/docs/akka/2.0.3/scala/scheduler.html)
 ```
 system.scheduler.schedule(2 seconds, 2 seconds, actor, "every other second message")
 ```
+
+**Retrieving properties**
+
+As you can see in the code there are some properties predefined in the ``application.conf`` file. To retrieve these properties, in the context of an actor, you can use the following:
+
+```
+context.system.settings.config.getString("...")
+
+```
+  
