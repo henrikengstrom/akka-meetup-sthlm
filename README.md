@@ -1,6 +1,6 @@
-# Akka Kata for Stockholm Meetup 
+# Akka Kata in Scala
 
-This repository contains an Akka kata to be used during the Stockholm Scala Meetup group (or whenever you feel like doing some Akka Karate related training).
+This repository contains an Akka kata that can be used whenever you feel like doing some Akka Karate related training.
 
 ## Prerequisites
 
