@@ -20,6 +20,9 @@ case object HandleUnprocessedBets
 
 class BettingService extends Actor with ActorLogging {
   val ActivePeriod = 2000L
+  // PLEASE NOTE THAT USING AN ATOMICINTEGER IN THIS CONTEXT IS AN ANTIPATTERN!
+  // Inside the actor you're in a thread safe environment so you can simply use an integer in this case.
+  // The AtomicInteger here is used to discuss this topic during the kata, hence its existence.
   val sequence = new AtomicInteger(1)
   var processor: Option[(ActorRef, Long)] = None
 
