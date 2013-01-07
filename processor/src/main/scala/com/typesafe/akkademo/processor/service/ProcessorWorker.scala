@@ -4,17 +4,17 @@
 package com.typesafe.akkademo.processor.service
 
 import akka.actor.Actor
-import com.typesafe.akkademo.common.{ConfirmationMessage, RetrieveBets, Bet, PlayerBet}
+import com.typesafe.akkademo.common.{ ConfirmationMessage, RetrieveBets, Bet, PlayerBet }
 import com.typesafe.akkademo.processor.repository.ReallyUnstableResource
 
 class ProcessorWorker extends Actor {
   import ProcessorWorker._
 
   def receive = {
-    case PlayerBet(id, Bet(player, game, amount)) =>
+    case PlayerBet(id, Bet(player, game, amount)) ⇒
       repo.save(id, player, game, amount)
       sender ! ConfirmationMessage(id)
-    case RetrieveBets => sender ! repo.findAll.toList
+    case RetrieveBets ⇒ sender ! repo.findAll.toList
   }
 }
 

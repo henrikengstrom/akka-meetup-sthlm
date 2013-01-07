@@ -18,11 +18,11 @@ class ReallyUnstableResource extends UnstableResource {
   val store = new File("persistent_store")
 
   try {
-    Source.fromFile(store).getLines().foreach(s => deserialize(s).foreach {
-      case (id, player, game, amount) => if (!bets.contains(id)) bets.put(id, Bet(player, game, amount))
+    Source.fromFile(store).getLines().foreach(s ⇒ deserialize(s).foreach {
+      case (id, player, game, amount) ⇒ if (!bets.contains(id)) bets.put(id, Bet(player, game, amount))
     })
   } catch {
-    case _ =>
+    case _ ⇒
   }
 
   def save(id: Int, player: String, game: Int, amount: Int) = {
@@ -47,13 +47,13 @@ class ReallyUnstableResource extends UnstableResource {
 
   protected def deserialize(s: String): Option[(Int, String, Int, Int)] = {
     s.split(":").toList match {
-      case id :: player :: game :: amount :: Nil =>
+      case id :: player :: game :: amount :: Nil ⇒
         try {
           Option((id.toInt, player, game.toInt, amount.toInt))
         } catch {
-          case _ => None
+          case _ ⇒ None
         }
-      case _ => None
+      case _ ⇒ None
     }
   }
 }

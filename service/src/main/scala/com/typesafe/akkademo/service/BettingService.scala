@@ -5,7 +5,6 @@ package com.typesafe.akkademo.service
 
 import akka.actor._
 import akka.util.duration._
-import akka.remote.RemoteServerClientDisconnected
 
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -43,6 +42,7 @@ class BettingService extends Actor with ActorLogging {
     case RetrieveBets            ⇒ for (p ← getActiveProcessor) p.forward(RetrieveBets)
     case ConfirmationMessage(id) ⇒ handleProcessedBet(id)
     case HandleUnprocessedBets   ⇒ handleUnprocessedBets()
+    case x                       ⇒ println("********* " + x)
     // In the upcoming clustering we will be able to listen to remote clients and their status.
     // With this it will be possible to prevent sending messages to a client that is no longer available.
     // e.g. case RemoteClientDead (or similar) => processor = None
@@ -55,7 +55,7 @@ class BettingService extends Actor with ActorLogging {
 
   def getActiveProcessor: Option[ActorRef] = {
     processor.flatMap {
-      case (s, t) => if (System.currentTimeMillis - t < ActivePeriod) Some(s) else None
+      case (s, t) ⇒ if (System.currentTimeMillis - t < ActivePeriod) Some(s) else None
     }
   }
 
@@ -81,6 +81,6 @@ class BettingService extends Actor with ActorLogging {
     // http://letitcrash.com/post/28901663062/throttling-messages-in-akka-2
 
     log.info("handling unprocessed bets (size): " + bets.size)
-    getActiveProcessor.foreach {p => bets.keys.foreach { k => p ! PlayerBet(k, bets(k))}}
+    getActiveProcessor.foreach { p ⇒ bets.keys.foreach { k ⇒ p ! PlayerBet(k, bets(k)) } }
   }
 }

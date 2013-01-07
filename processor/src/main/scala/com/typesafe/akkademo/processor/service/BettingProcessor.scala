@@ -3,9 +3,9 @@
  */
 package com.typesafe.akkademo.processor.service
 
-import akka.actor.{OneForOneStrategy, Props, ActorLogging, Actor}
+import akka.actor.{ OneForOneStrategy, Props, ActorLogging, Actor }
 import akka.util.duration._
-import com.typesafe.akkademo.common.{RegisterProcessor, PlayerBet, RetrieveBets}
+import com.typesafe.akkademo.common.{ RegisterProcessor, PlayerBet, RetrieveBets }
 import akka.actor.SupervisorStrategy.Restart
 import com.typesafe.akkademo.processor.repository.DatabaseFailureException
 
@@ -23,19 +23,19 @@ class BettingProcessor extends Actor with ActorLogging {
   }
 
   override val supervisorStrategy = OneForOneStrategy() {
-    case r: RuntimeException => Restart
-    case d: DatabaseFailureException => Restart
+    case r: RuntimeException         ⇒ Restart
+    case d: DatabaseFailureException ⇒ Restart
     // Read more about fault tolerance here: http://doc.akka.io/docs/akka/2.0.3/scala/fault-tolerance.html
   }
 
   def receive = {
-    case InitializeProcessor => service ! RegisterProcessor
+    case InitializeProcessor ⇒ service ! RegisterProcessor
 
-    case bet: PlayerBet =>
+    case bet: PlayerBet ⇒
       log.info("Storing bet: " + bet)
       worker.forward(bet)
 
-    case RetrieveBets   =>
+    case RetrieveBets ⇒
       log.info("Retrieving all bets")
       worker.forward(RetrieveBets)
   }
