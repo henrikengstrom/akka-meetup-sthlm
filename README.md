@@ -7,7 +7,7 @@ This repository contains an Akka kata that can be used whenever you feel like do
 * A computer
 * An installed OS
 * Java
-* [SBT 0.12.0](http://www.scala-sbt.org/download.html)
+* [SBT 0.12.2](http://www.scala-sbt.org/download.html)
 * [Git](http://git-scm.com/downloads) _(not mandatory)_
 
 ## Getting Started (Git installed)

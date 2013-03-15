@@ -1,5 +1,5 @@
 /**
- *  Copyright (C) 2011-2012 Typesafe <http://typesafe.com/>
+ *  Copyright (C) 2011-2013 Typesafe <http://typesafe.com/>
  */
 package com.typesafe.akkademo.processor.repository
 
@@ -22,7 +22,7 @@ class ReallyUnstableResource extends UnstableResource {
       case (id, player, game, amount) ⇒ if (!bets.contains(id)) bets.put(id, Bet(player, game, amount))
     })
   } catch {
-    case _ ⇒
+    case _: Exception ⇒
   }
 
   def save(id: Int, player: String, game: Int, amount: Int) = {
@@ -51,7 +51,7 @@ class ReallyUnstableResource extends UnstableResource {
         try {
           Option((id.toInt, player, game.toInt, amount.toInt))
         } catch {
-          case _ ⇒ None
+          case _: Exception ⇒ None
         }
       case _ ⇒ None
     }
