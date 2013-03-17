@@ -4,8 +4,8 @@
 package com.typesafe.akkademo.client
 
 import akka.actor.ActorSystem
-import akka.dispatch.Await
-import akka.util.duration._
+import scala.concurrent.duration._
+import scala.concurrent.Await
 import akka.util.Timeout
 import akka.pattern.ask
 import com.typesafe.config.ConfigFactory

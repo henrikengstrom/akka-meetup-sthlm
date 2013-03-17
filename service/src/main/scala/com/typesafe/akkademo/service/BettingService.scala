@@ -4,7 +4,7 @@
 package com.typesafe.akkademo.service
 
 import akka.actor._
-import akka.util.duration._
+import scala.concurrent.duration._
 
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -12,17 +12,13 @@ import com.typesafe.akkademo.common._
 import com.typesafe.akkademo.common.Bet
 import com.typesafe.akkademo.common.ConfirmationMessage
 import com.typesafe.akkademo.common.PlayerBet
-
-import scala.Some
+import scala.concurrent.ExecutionContext.Implicits.global
 
 case object HandleUnprocessedBets
 
 class BettingService extends Actor with ActorLogging {
   val ActivePeriod = 2000L
-  // PLEASE NOTE THAT USING AN ATOMICINTEGER IN THIS CONTEXT IS AN ANTIPATTERN!
-  // Inside the actor you're in a thread safe environment so you can simply use an integer in this case.
-  // The AtomicInteger here is used to discuss this topic during the kata, hence its existence.
-  val sequence = new AtomicInteger(1)
+  var sequence = 0
   var processor: Option[(ActorRef, Long)] = None
 
   // Note: To make this solution (even) more bullet proof you would have to persist the incoming bets.
@@ -42,7 +38,6 @@ class BettingService extends Actor with ActorLogging {
     case RetrieveBets            ⇒ for (p ← getActiveProcessor) p.forward(RetrieveBets)
     case ConfirmationMessage(id) ⇒ handleProcessedBet(id)
     case HandleUnprocessedBets   ⇒ handleUnprocessedBets()
-    case x                       ⇒ println("********* " + x)
     // In the upcoming clustering we will be able to listen to remote clients and their status.
     // With this it will be possible to prevent sending messages to a client that is no longer available.
     // e.g. case RemoteClientDead (or similar) => processor = None
@@ -60,9 +55,9 @@ class BettingService extends Actor with ActorLogging {
   }
 
   def processBet(bet: Bet): PlayerBet = {
-    val id = sequence.getAndIncrement()
-    bets += id -> bet
-    PlayerBet(id, bet)
+    sequence += 1
+    bets += sequence -> bet
+    PlayerBet(sequence, bet)
   }
 
   def handleProcessedBet(id: Int) = {
