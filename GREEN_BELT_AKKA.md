@@ -2,7 +2,7 @@
 
 This doucment will briefly introduce some important parts of Akka _specific for the implementation of this kata_. 
 
-The official Akka documentation is really good (if we may say so ourselves): [Akka Docs](http://doc.akka.io/docs/akka/2.0.3/)  
+The official Akka documentation is really good (if we may say so ourselves): [Akka Docs](http://doc.akka.io/docs/akka/2.1.2/)  
 
 _Please note_ that this document describes parts of Akka very briefly and we refer to the original documentation for an in-depth description of Akka.
 
@@ -14,7 +14,7 @@ Below is a brief introduction of some concepts you will need for this kata with 
 
 An actor system is, among other things, the context in which actors operate. You can have multiple actor systems within the same JVM.
 
-See [Actor Systems](http://doc.akka.io/docs/akka/2.0.3/general/actor-systems.html)
+See [Actor Systems](http://doc.akka.io/docs/akka/2.1.2/general/actor-systems.html)
 
 **Creating ActorSystems**
 
@@ -24,7 +24,7 @@ val system = ActorSystem("MyActorSystem")
 
 ### Working with Actors
 
-See [Actors](http://doc.akka.io/docs/akka/2.0.3/scala/actors.html)
+See [Actors](http://doc.akka.io/docs/akka/2.1.2/scala/actors.html)
 
 
 **Creating actors**
@@ -83,9 +83,18 @@ class MyActor extends Actor {
 }
 ```
 
+**Replying**
+
+class MyActor extends Actor {
+  def receive = {
+	case "A message" => sender ! "Got it"
+  }
+}
+```
+
 **Supervising actors**
 
-See [Fault Tolerance](http://doc.akka.io/docs/akka/2.0.3/scala/fault-tolerance.html)
+See [Fault Tolerance](http://doc.akka.io/docs/akka/2.1.2/scala/fault-tolerance.html)
 
 ```
 override val supervisorStrategy = OneForOneStrategy() {
@@ -100,9 +109,11 @@ override val supervisorStrategy = OneForOneStrategy() {
 
 To schedule a message to be sent sometime in the future, once or repeatedly use the scheduler.
 
-See [Scheduler](http://doc.akka.io/docs/akka/2.0.3/scala/scheduler.html)
+See [Scheduler](http://doc.akka.io/docs/akka/2.1.2/scala/scheduler.html)
 
 ```
+//Use the system's default dispatcher as ExecutionContext
+import system.dispatcher
 system.scheduler.schedule(2 seconds, 2 seconds, actor, "every other second message")
 ```
 

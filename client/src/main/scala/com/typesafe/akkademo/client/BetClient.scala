@@ -43,7 +43,8 @@ object BetClient extends App {
     } else {
       implicit val timeout = Timeout(2 seconds)
       val fBets = ask(service, RetrieveBets).mapTo[List[Bet]]
-      assert(Await.result(fBets, 5 seconds).sorted == bets.sorted)
+      val result = Await.result(fBets, 5 seconds).sorted
+      assert(result == bets.sorted, s"expected ${bets.sorted}, got $result")
       println("*** TESTING OK")
     }
   } finally {
