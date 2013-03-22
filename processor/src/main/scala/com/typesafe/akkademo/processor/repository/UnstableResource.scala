@@ -6,6 +6,7 @@ package com.typesafe.akkademo.processor.repository
 import com.typesafe.akkademo.common._
 import java.io.{ FileWriter, File }
 import scala.io.Source
+import scala.concurrent.forkjoin.ThreadLocalRandom
 
 trait UnstableResource {
   def save(idempotentId: Int, player: String, game: Int, amount: Int): Unit
@@ -13,13 +14,13 @@ trait UnstableResource {
 }
 
 class ReallyUnstableResource extends UnstableResource {
-  val bets = scala.collection.mutable.Map[Int, Bet]()
-  val randomizer = new scala.util.Random
-  val store = new File("persistent_store")
+  private var bets = Map[Int, Bet]()
+  private def randomizer = ThreadLocalRandom.current()
+  private val store = new File("persistent_store")
 
   try {
     Source.fromFile(store).getLines().foreach(s ⇒ deserialize(s).foreach {
-      case (id, player, game, amount) ⇒ if (!bets.contains(id)) bets.put(id, Bet(player, game, amount))
+      case (id, player, game, amount) ⇒ if (!bets.contains(id)) bets += (id -> Bet(player, game, amount))
     })
   } catch {
     case _: Exception ⇒
