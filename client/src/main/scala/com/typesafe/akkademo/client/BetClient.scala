@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2011-2012 Typesafe <http://typesafe.com/>
+ * Copyright (C) 2011-2013 Typesafe <http://typesafe.com/>
  */
 package com.typesafe.akkademo.client
 
@@ -22,7 +22,6 @@ object BetClient extends App {
         provider = "akka.remote.RemoteActorRefProvider"
       }
       remote {
-        transport = "akka.remote.netty.NettyRemoteTransport"
         netty {
           hostname = "127.0.0.1"
           port = 2661
@@ -43,7 +42,8 @@ object BetClient extends App {
     } else {
       implicit val timeout = Timeout(2 seconds)
       val fBets = service.ask(RetrieveBets).mapTo[List[Bet]]
-      assert(Await.result(fBets, 5 seconds).sorted == bets.sorted)
+      val result = Await.result(fBets, 5 seconds).sorted
+      assert(result == bets.sorted, s"expected ${bets.sorted}, got $result")
       println("*** TESTING OK")
     }
   } finally {

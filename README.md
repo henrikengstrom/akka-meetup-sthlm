@@ -93,19 +93,30 @@ This will create bash scripts in `service/target/start`, `processor/target/start
 
 If you're on Windows without access to a bash shell then you will have to copy the command line and arguments into a script of your own, and rewrite the paths to windows style paths.
 
-**Do not place the scripts in a target directory since they will be deleted if you do:**
+**Note that the scripts are by default placed in target directory and they will be deleted if you do:**
 
 ```
 > sbt clean
 ```
 
-To start testing your application you can issue the command:
+Start the service
+
+```
+> service/target/start
+```
+
+The next step is to start the processor
+```
+> processor/target/start
+```
+
+Finally you should run the client. Start off by sending bets to the service
 
 ```
 > client/target/start send
 ```
 
-And to check the results you issue the command:
+The final step is to retrieve the bets from the service
 
 ```
 > client/target/start

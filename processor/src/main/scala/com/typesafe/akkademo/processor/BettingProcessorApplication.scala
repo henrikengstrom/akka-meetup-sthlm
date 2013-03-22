@@ -1,5 +1,5 @@
 /**
- *  Copyright (C) 2011-2012 Typesafe <http://typesafe.com/>
+ *  Copyright (C) 2011-2013 Typesafe <http://typesafe.com/>
  */
 package com.typesafe.akkademo.processor
 
@@ -8,9 +8,7 @@ import com.typesafe.config._
 import service.{ InitializeProcessor, BettingProcessor }
 
 object BettingProcessorApplication extends App {
-  val config = ConfigFactory.load()
-
-  val system = ActorSystem("BettingProcessorActorSystem", config)
+  val system = ActorSystem("BettingProcessorActorSystem", ConfigFactory.load())
 
   val bettingProcessor = system.actorOf(Props[BettingProcessor], "bettingProcessor")
 

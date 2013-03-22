@@ -58,8 +58,6 @@ object AkkaDemoBuild extends Build {
   )
 
   lazy val defaultSettings = Defaults.defaultSettings ++ formatSettings ++ buildSettings ++ Seq(
-    resolvers += "Typesafe Repo" at "http://repo.typesafe.com/typesafe/releases/",
-
     // compile options
     scalacOptions ++= Seq("-encoding", "UTF-8", "-optimise", "-deprecation", "-unchecked"),
     javacOptions  ++= Seq("-Xlint:unchecked", "-Xlint:deprecation"),
@@ -90,8 +88,8 @@ object Dependencies {
 object Dependency {
   object Version {
     val Akka      = "2.1.2"
-    val Scalatest = "1.6.1"
-    val JUnit     = "4.5"
+    val Scalatest = "1.9.1"
+    val JUnit     = "4.10"
   }
 
   // ---- Application dependencies ----
@@ -101,6 +99,6 @@ object Dependency {
 
   // ---- Test dependencies ----
 
-  val scalaTest   = "org.scalatest"       % "scalatest_2.9.0"          % Version.Scalatest  % "test"
+  val scalaTest   = "org.scalatest"       %% "scalatest"               % Version.Scalatest  % "test"
   val jUnit       = "junit"               % "junit"                    % Version.JUnit      % "test"
 }

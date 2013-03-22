@@ -1,5 +1,5 @@
 /**
- *  Copyright (C) 2011-2012 Typesafe <http://typesafe.com/>
+ *  Copyright (C) 2011-2013 Typesafe <http://typesafe.com/>
  */
 package com.typesafe.akkademo.service
 
@@ -12,7 +12,6 @@ import com.typesafe.akkademo.common._
 import com.typesafe.akkademo.common.Bet
 import com.typesafe.akkademo.common.ConfirmationMessage
 import com.typesafe.akkademo.common.PlayerBet
-import scala.concurrent.ExecutionContext.Implicits.global
 
 case object HandleUnprocessedBets
 
@@ -22,7 +21,8 @@ class BettingService extends Actor with ActorLogging {
   var processor: Option[(ActorRef, Long)] = None
 
   // Note: To make this solution (even) more bullet proof you would have to persist the incoming bets.
-  val bets = scala.collection.mutable.Map[Int, Bet]()
+  var bets = Map[Int, Bet]()
+  import context.dispatcher
   val scheduler = context.system.scheduler.schedule(2 seconds, 2 seconds, self, HandleUnprocessedBets)
 
   override def postStop() {
@@ -49,8 +49,8 @@ class BettingService extends Actor with ActorLogging {
   }
 
   def getActiveProcessor: Option[ActorRef] = {
-    processor.flatMap {
-      case (s, t) ⇒ if (System.currentTimeMillis - t < ActivePeriod) Some(s) else None
+    processor.collect {
+      case (p, t) if System.currentTimeMillis - t < ActivePeriod ⇒ p
     }
   }
 
@@ -76,6 +76,6 @@ class BettingService extends Actor with ActorLogging {
     // http://letitcrash.com/post/28901663062/throttling-messages-in-akka-2
 
     log.info("handling unprocessed bets (size): " + bets.size)
-    getActiveProcessor.foreach { p ⇒ bets.keys.foreach { k ⇒ p ! PlayerBet(k, bets(k)) } }
+    getActiveProcessor.foreach { p ⇒ bets.foreach { case (k, v) ⇒ p ! PlayerBet(k, v) } }
   }
 }
