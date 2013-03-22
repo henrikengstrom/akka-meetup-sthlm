@@ -11,7 +11,7 @@ class BettingProcessor extends Actor with ActorLogging {
   /**
    * TASKS :
    * Send remote registration message to service
-   * Create worker for dangerous task (using UnstableRepository actor)
+   * Create worker for dangerous task (using UnstableRepository actor with ReallyUnstableResource)
    * Supervise worker -> handle errors
    * Send confirmation message back to Betting service
    */
