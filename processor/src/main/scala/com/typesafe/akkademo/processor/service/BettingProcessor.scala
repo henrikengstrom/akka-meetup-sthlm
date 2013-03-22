@@ -1,5 +1,5 @@
 /**
- *  Copyright (C) 2011-2012 Typesafe <http://typesafe.com/>
+ *  Copyright (C) 2011-2013 Typesafe <http://typesafe.com/>
  */
 package com.typesafe.akkademo.processor.service
 
@@ -8,13 +8,13 @@ import scala.concurrent.duration._
 import com.typesafe.akkademo.common.{ RegisterProcessor, PlayerBet, RetrieveBets }
 import akka.actor.SupervisorStrategy.Restart
 import com.typesafe.akkademo.processor.repository.DatabaseFailureException
-import scala.concurrent.ExecutionContext.Implicits.global
 
 case object InitializeProcessor
 
 class BettingProcessor extends Actor with ActorLogging {
   val worker = context.actorOf(Props[ProcessorWorker], "theWorker")
   val service = context.actorFor(context.system.settings.config.getString("betting-service-actor"))
+  import context.dispatcher
   val scheduler = context.system.scheduler.schedule(1 seconds, 1 seconds, self, InitializeProcessor)
 
   override def postStop() {
