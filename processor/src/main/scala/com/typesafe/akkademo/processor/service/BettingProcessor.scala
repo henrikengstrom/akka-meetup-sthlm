@@ -25,7 +25,7 @@ class BettingProcessor extends Actor with ActorLogging {
   override val supervisorStrategy = OneForOneStrategy() {
     case r: RuntimeException         ⇒ Restart
     case d: DatabaseFailureException ⇒ Restart
-    // Read more about fault tolerance here: http://doc.akka.io/docs/akka/2.0.3/scala/fault-tolerance.html
+    // Read more about fault tolerance here: http://doc.akka.io/docs/akka/2.1.2/scala/fault-tolerance.html
   }
 
   def receive = {

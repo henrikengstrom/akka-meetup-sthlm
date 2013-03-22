@@ -7,9 +7,7 @@ import akka.actor.{ Props, ActorSystem }
 import com.typesafe.config._
 
 object BettingServiceApplication extends App {
-  val config = ConfigFactory.load()
-
-  val system = ActorSystem("BettingServiceActorSystem", config)
+  val system = ActorSystem("BettingServiceActorSystem", ConfigFactory.load())
 
   val service = system.actorOf(Props[BettingService], "bettingService")
 }

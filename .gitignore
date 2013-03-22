@@ -13,6 +13,7 @@
 .project
 .settings
 .cache
+.target
 
 # sbt specific
 dist/*
