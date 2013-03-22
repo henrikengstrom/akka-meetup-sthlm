@@ -1,5 +1,5 @@
 /**
- *  Copyright (C) 2011-2012 Typesafe <http://typesafe.com/>
+ *  Copyright (C) 2011-2013 Typesafe <http://typesafe.com/>
  */
 package com.typesafe.akkademo.common
 
@@ -16,15 +16,14 @@ case object RegisterProcessor
 object Bet {
   implicit object BetOrdering extends Ordering[Bet] {
     def compare(a: Bet, b: Bet): Int = {
-      val p = a.player compare b.player
-      if (p == 0) {
-        val g = a.game compare b.game
-        if (g == 0) {
-          a.amount compare b.amount
-        } else
-          g
-      } else
-        p
+      (a.player compare b.player) match {
+        case 0 ⇒
+          (a.game compare b.game) match {
+            case 0 ⇒ a.amount compare b.amount
+            case g ⇒ g
+          }
+        case p ⇒ p
+      }
     }
   }
 }

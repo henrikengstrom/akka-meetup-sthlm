@@ -13,6 +13,7 @@
 .project
 .settings
 .cache
+.target
 
 # sbt specific
 dist/*
@@ -24,3 +25,5 @@ project/plugins/project/
 
 # Scala-IDE specific
 .scala_dependencies
+
+persistent_store
